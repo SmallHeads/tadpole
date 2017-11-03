@@ -4,9 +4,13 @@ from keras.layers import Dense, Dropout, Input, BatchNormalization
 from keras.layers.merge import concatenate
 from keras.models import Model
 
+from keras.utils import to_categorical
+
 from sklearn.model_selection import ShuffleSplit
 
 import numpy as np
+
+from data_formatting import compute_data_table
 
 
 workdir = 'E:/tadpole/'
@@ -14,7 +18,7 @@ workdir = 'E:/tadpole/'
 def mlp():
     diagnostic_states = 3
 
-    features = Input(shape=(300,))
+    features = Input(shape=(25,))
     months = Input(shape=(1,))
 
     h1 = Dense(64, activation='relu')(features)
@@ -54,17 +58,17 @@ def autoencoder(input_dims, latent_space_dims):
 def train_stacked_autoencoder(x_train, y_train, x_test, y_test):
     diagnostic_states = 3
 
-    layer1 = autoencoder(300, 200)
+    layer1 = autoencoder(25, 20)
     layer1.compile(optimizer='adam', loss='mean_squared_error')
     layer1.fit(x_train, x_train, epochs=10)
 
     x_train_encoded = layer1.predict(x_train)
 
-    layer2 = autoencoder(200, 125)
+    layer2 = autoencoder(20, 10)
     layer2.compile(optimizer='adam', loss='mean_squared_error')
     layer2.fit(x_train_encoded, x_train_encoded, epochs=10)
 
-    input = Input(shape=300,)
+    input = Input(shape=25,)
     months = Input(shape=1,)
 
     first_encoding = layer1.get_layer(name='encoding')(input)
@@ -86,28 +90,40 @@ def train_stacked_autoencoder(x_train, y_train, x_test, y_test):
 
 
 def parse_data(feature_list, output_list):
+    x_ = []
+    y_ = []
 
-    x_train = []
-    y_train = []
+    month = []
+
+    dx = []
+    adas = []
+    ventricle = []
 
     for i, (x, y) in enumerate(zip(feature_list, output_list)):
         for y_timepoint in y:
-            x_train.append(x)
-            y_train.append(y_timepoint)
+            x_.append(x)
 
-    return np.asarray(x_train, dtype='float32'), np.asarray(y_train, dtype='float32')
+            month.append(y_timepoint[0])
 
-def get_data():
-    features = []
-    outputs = []
-    return features, outputs
+            dx.append(y_timepoint[1])
+            adas.append(y_timepoint[2])
+            ventricle.append(y_timepoint[3])
+
+    return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='float32')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32'))
+
 
 if __name__ == "__main__":
     print('It\'s not the size that counts, it\'s the connections')
 
-    feature_list, output_list = get_data()
+    feature_list, output_list = compute_data_table(range(1000))
 
-    x, y = parse_data(feature_list, output_list)
+    # print('x:', feature_list.shape)
+    # print('y:', output_list.shape)
+
+    (x, month), (dx, adas, ventricle) = parse_data(feature_list, output_list)
+
+    print('x shape:', x.shape, month.shape)
+    print('y shape:', dx.shape, adas.shape, ventricle.shape)
 
     model = mlp()
 
@@ -118,4 +134,4 @@ if __name__ == "__main__":
                   loss_weights={'future_diagnosis': 0.5, 'ventricle_volume': 0.25, 'as_cog': 0.25}
                   )
 
-    model.fit_generator()
+    model.fit([x, month], [dx, adas, ventricle])
