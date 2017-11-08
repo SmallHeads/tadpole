@@ -10,6 +10,14 @@ def compute_data_table():
     d1d2 = pd.read_csv(workdir + 'TADPOLE_D1_D2.csv')
 
     full_df.drop(full_df.columns[0], axis=1, inplace=True)
+    
+    missing_ids = [x for x in ref_df.RID.unique() if any([not pd.notnull(y) for y in ref_df[ref_df.RID==x]['y_DX']])]
+    for i,sub in enumerate(missing_ids):
+        jnk = ref_df[ref_df.RID==sub]['y_DX'].fillna(method='ffill')
+        ref_df.loc[ref_df.RID==sub,'y_DX'] = jnk.values
+
+    full_df = full_df.loc[ref_df.dropna().index]
+    ref_df = ref_df.loc[ref_df.dropna().index]
 
     full_df['RID'] = ref_df['RID']
     full_df['VISCODE'] = ref_df['VISCODE']
