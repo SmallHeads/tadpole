@@ -16,8 +16,8 @@ def compute_data_table():
         jnk = ref_df[ref_df.RID==sub]['y_DX'].fillna(method='ffill')
         ref_df.loc[ref_df.RID==sub,'y_DX'] = jnk.values
 
-    full_df = full_df.loc[ref_df.dropna().index]
-    ref_df = ref_df.loc[ref_df.dropna().index]
+    full_df = full_df.loc[ref_df.dropna().index].reset_index(drop=True)
+    ref_df = ref_df.loc[ref_df.dropna().index].reset_index(drop=True)
 
     full_df['RID'] = ref_df['RID']
     full_df['VISCODE'] = ref_df['VISCODE']
