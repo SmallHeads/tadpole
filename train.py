@@ -167,7 +167,9 @@ if __name__ == "__main__":
                             'ventricle_volume': 'mean_squared_error',
                             'as_cog': 'mean_squared_error'},
                       loss_weights={'future_diagnosis': 0.5, 'ventricle_volume': 0.25, 'as_cog': 0.25},
-                      callbacks=[model_checkpoint]
+                      metrics={'future_diagnosis': 'accuracy',
+                               'ventricle_colume': 'mean_squared_error',
+                               'as_cog': 'mean_squared_error'}
                       )
 
         #inputs
@@ -179,5 +181,6 @@ if __name__ == "__main__":
         adas_train, adas_test = adas[train_indices], adas[test_indices]
         ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
 
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]))
+        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=10, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+
 
