@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def compute_data_table():
+def compute_data_table(for_predict=False):
     workdir = 'C:/Users/adoyle/PycharmProjects/small-heads/data/'
 
     full_df = pd.read_csv(workdir + 'inputed50_cleaned.csv')
@@ -41,7 +41,10 @@ def compute_data_table():
     for col in target.columns[1:]:
         data[col] = target[col]
 
-    sel_index = data.index
+    if for_predict:
+        sel_index = data[ref_df.D2 == 1].index
+    else:
+        sel_index = data.index
 
     x_ = []
     y_ = []
@@ -65,5 +68,5 @@ def compute_data_table():
             
             y_.append(target_)
             
-    return x_, y_
+    return x_, y_, ref_df
 
