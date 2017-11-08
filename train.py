@@ -2,7 +2,7 @@ import keras
 
 from keras.layers import Dense, Dropout, Input, BatchNormalization, LeakyReLU
 from keras.layers.merge import concatenate
-from keras.models import Model
+from keras.models import Model, load_model
 
 from keras.utils import to_categorical
 
@@ -11,6 +11,8 @@ from sklearn.model_selection import StratifiedShuffleSplit, StratifiedKFold
 from keras.callbacks import ModelCheckpoint
 
 import matplotlib.pyplot as plt
+
+import csv
 
 import os
 import pickle as pkl
@@ -29,24 +31,38 @@ def mlp(input_variables):
 
     h1 = Dense(256)(features)
     l1 = LeakyReLU()(h1)
-    d1 = Dropout(0.5)(l1)
+    d1 = Dropout(0.2)(l1)
     n1 = BatchNormalization()(d1)
     h1m = concatenate([n1, months])
-    h2 = Dense(256)(h1m)
+
+    h2 = Dense(512)(h1m)
     l2 = LeakyReLU()(h2)
-    d2 = Dropout(0.5)(l2)
+    d2 = Dropout(0.3)(l2)
     n2 = BatchNormalization()(d2)
     h2m = concatenate([n2, months])
-    h3 = Dense(256)(h2m)
+
+    h3 = Dense(512)(h2m)
     l3 = LeakyReLU()(h3)
-    d3 = Dropout(0.5)(l3)
+    d3 = Dropout(0.4)(l3)
     n3 = BatchNormalization()(d3)
     h3m = concatenate([n3, months])
 
-    future_diagnosis = Dense(diagnostic_states, activation='softmax', name='future_diagnosis')(h3m)
+    h4 = Dense(256)(h3m)
+    l4 = LeakyReLU()(h4)
+    d4 = Dropout(0.5)(l4)
+    n4 = BatchNormalization()(d4)
+    h4m = concatenate([n4, months])
 
-    ventricle_volume = Dense(1, activation='linear', name='ventricle_volume')(h3m)
-    as_cog = Dense(1, activation='linear', name='as_cog')(h3m)
+    h5 = Dense(256)(h4m)
+    l5 = LeakyReLU()(h5)
+    d5 = Dropout(0.5)(l5)
+    n5 = BatchNormalization()(d5)
+    h5m = concatenate([n5, months])
+
+    future_diagnosis = Dense(diagnostic_states, activation='softmax', name='future_diagnosis')(h5m)
+
+    ventricle_volume = Dense(1, activation='linear', name='ventricle_volume')(h5m)
+    as_cog = Dense(1, activation='linear', name='as_cog')(h5m)
 
     model = Model(inputs=[features, months], outputs=[future_diagnosis, ventricle_volume, as_cog])
 
@@ -122,13 +138,47 @@ def parse_data(feature_list, output_list):
 
     return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='uint8')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32'))
 
+def plot_graphs(hist, results_dir, fold_num):
+    epoch_num = range(len(hist.history['future_diagnosis_acc']))
 
-if __name__ == "__main__":
-    print('It\'s not the size that counts, it\'s the connections')
+    plt.clf()
+    plt.plot(epoch_num, hist.history['ventricle_volume_mean_squared_error'], label='Ventricle Vol. MSE')
+    plt.plot(epoch_num, hist.history['val_ventricle_volume_mean_squared_error'], label='Validation Ventricle Vol. MSE')
+    plt.plot(epoch_num, hist.history['future_diagnosis_acc'], label='Future Diagnosis Accuracy')
+    plt.plot(epoch_num, hist.history['val_future_diagnosis_acc'], label='Validation Future Diagnosis Accuracy')
 
-    feature_list, output_list = compute_data_table()
+    plt.legend(shadow=True)
+    plt.xlabel("Training Epoch Number")
+    plt.ylabel("Metric Value")
+    plt.savefig(results_dir + 'training_metrics_fold' + str(fold_num) + '.png', bbox_inches='tight')
+    plt.close()
+
+
+def test_d2():
+    model = load_model('E:/tadpole/experiment-10/' + 'best_tadpole_model0.hdf5')
+
+    feature_list, output_list, ref_df = compute_data_table(for_predict=True)
 
     (x, month), (dx, adas, ventricle) = parse_data(feature_list, output_list)
+
+    predictions = model.predict([x, month_test])
+
+    with open(results_dir + 'd2_predictions.csv', 'wb') as prediction_file:
+        prediction_writer = csv.writer(prediction_file)
+
+        for prediction in predictions:
+            prediction_writer.writerow(prediction)
+
+
+
+if __name__ == "__main__":
+    test_d2()
+
+    print('It\'s not the size that counts, it\'s the connections')
+
+    feature_list, output_list, ref_df = compute_data_table()
+
+    (x, month), (dx, adas, ventricle), ref_df = parse_data(feature_list, output_list)
 
     print('x shape:', x.shape, month.shape)
     print('y shape:', dx.shape, adas.shape, ventricle.shape)
@@ -158,19 +208,22 @@ if __name__ == "__main__":
         model = mlp(feature_inputs)
         model.summary()
 
-        model_checkpoint = ModelCheckpoint(results_dir + 'best_qc_model.hdf5',
-                                           monitor="val_acc",
+        model_checkpoint = ModelCheckpoint(results_dir + "best_weights_fold_" + str(k) + ".hdf5",
+                                           monitor="val_future_diagnosis_acc",
                                            save_best_only=True)
 
         model.compile(optimizer='adam',
                       loss={'future_diagnosis': 'categorical_crossentropy',
                             'ventricle_volume': 'mean_squared_error',
                             'as_cog': 'mean_squared_error'},
-                      loss_weights={'future_diagnosis': 0.5, 'ventricle_volume': 0.25, 'as_cog': 0.25},
+                      loss_weights={'future_diagnosis': 0.6, 'ventricle_volume': 0.4, 'as_cog': 0.0001},
                       metrics={'future_diagnosis': 'accuracy',
-                               'ventricle_colume': 'mean_squared_error',
+                               'ventricle_volume': 'mean_squared_error',
                                'as_cog': 'mean_squared_error'}
                       )
+
+        print(model.metrics_names)
+        print(model.metrics)
 
         #inputs
         x_train, x_test = x[train_indices], x[test_indices]
@@ -181,6 +234,11 @@ if __name__ == "__main__":
         adas_train, adas_test = adas[train_indices], adas[test_indices]
         ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
 
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=10, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=20, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
 
+        model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
+        model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
 
+        plot_graphs(hist, results_dir, k)
+
+        test_d2()
