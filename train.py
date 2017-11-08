@@ -149,8 +149,6 @@ if __name__ == "__main__":
     n_samples = x.shape[0]
     feature_inputs = x.shape[1]
 
-
-
     # skf = StratifiedKFold(n_splits=5)
 
     ss = ShuffleSplit(n_splits=10)
@@ -170,8 +168,6 @@ if __name__ == "__main__":
                       loss_weights={'future_diagnosis': 0.5, 'ventricle_volume': 0.25, 'as_cog': 0.25},
                       callbacks=[model_checkpoint]
                       )
-
-
 
         #inputs
         x_train, x_test = x[train_indices], x[test_indices]
