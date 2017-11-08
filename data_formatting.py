@@ -19,6 +19,9 @@ def compute_data_table():
     full_df = full_df.loc[ref_df.dropna().index].reset_index(drop=True)
     ref_df = ref_df.loc[ref_df.dropna().index].reset_index(drop=True)
 
+    code = {1: 0, 2:1, 3:2}
+    ref_df['y_DX'] = [code[x] for x in ref_df['y_DX']]
+
     full_df['RID'] = ref_df['RID']
     full_df['VISCODE'] = ref_df['VISCODE']
     full_df['COLPROT'] = ref_df['COLPROT']
