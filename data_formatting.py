@@ -1,33 +1,37 @@
 import pandas as pd
 import numpy as np
 
-full_df = pd.read_csv('/Users/AngelaTam/Downloads/inputed50_cleaned.csv')
-ref_df = pd.read_csv('/Users/AngelaTam/Downloads/inputed50_ref.csv')
-d1d2 = pd.read_csv('/Users/AngelaTam/Downloads/tadpole_challenge/TADPOLE_D1_D2.csv')
 
-full_df.drop(full_df.columns[0],axis=1,inplace=True)
+def compute_data_table():
+    workdir = 'C:/Users/adoyle/PycharmProjects/small-heads/data/'
 
-full_df['RID'] = ref_df['RID']
-full_df['VISCODE'] = ref_df['VISCODE']
-full_df['COLPROT'] = ref_df['COLPROT']
-full_df['EXAMDATE'] = ref_df['EXAMDATE']
-full_df['Month_bl'] = d1d2['Month_bl']
+    full_df = pd.read_csv(workdir + 'inputed50_cleaned.csv')
+    ref_df = pd.read_csv(workdir + 'inputed50_ref.csv')
+    d1d2 = pd.read_csv(workdir + 'TADPOLE_D1_D2.csv')
 
-data = full_df
+    full_df.drop(full_df.columns[0], axis=1, inplace=True)
 
-target = ref_df[['y_DX','y_ADAS13','y_Ventricles_adj_TIV']]
-#target = target.dropna(axis=0)
-#data = data.loc[target.index]
-#data = data.dropna(axis=1)
-#target = target.loc[data.index]
-target['Month_bl'] = data['Month_bl']
-target = target[['Month_bl','y_DX','y_ADAS13','y_Ventricles_adj_TIV']]
+    full_df['RID'] = ref_df['RID']
+    full_df['VISCODE'] = ref_df['VISCODE']
+    full_df['COLPROT'] = ref_df['COLPROT']
+    full_df['EXAMDATE'] = ref_df['EXAMDATE']
+    full_df['Month_bl'] = d1d2['Month_bl']
 
-for col in target.columns[1:]:
-    data[col] = target[col]
+    data = full_df
 
+    target = ref_df[['y_DX', 'y_ADAS13', 'y_Ventricles_adj_TIV']]
+    # target = target.dropna(axis=0)
+    # data = data.loc[target.index]
+    # data = data.dropna(axis=1)
+    # target = target.loc[data.index]
+    target['Month_bl'] = data['Month_bl']
+    target = target[['Month_bl', 'y_DX', 'y_ADAS13', 'y_Ventricles_adj_TIV']]
 
-def compute_data_table(sel_index):
+    for col in target.columns[1:]:
+        data[col] = target[col]
+
+    sel_index = data.index
+
     x_ = []
     y_ = []
     selection = data.iloc[sel_index][['RID','Month_bl']]
@@ -50,8 +54,5 @@ def compute_data_table(sel_index):
             
             y_.append(target_)
             
-    return x_,y_
- 
+    return x_, y_
 
-sel_index = data.index
-x_,y_ = compute_data_table(sel_index) 

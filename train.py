@@ -120,13 +120,14 @@ def parse_data(feature_list, output_list):
             adas.append(y_timepoint[2])
             ventricle.append(y_timepoint[3])
 
-    return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='float32')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32'))
+    return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='uint8')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32'))
 
 
 if __name__ == "__main__":
     print('It\'s not the size that counts, it\'s the connections')
 
-    feature_list, output_list = compute_data_table(range(1000))
+    feature_list, output_list = compute_data_table()
+
     (x, month), (dx, adas, ventricle) = parse_data(feature_list, output_list)
 
     print('x shape:', x.shape, month.shape)
@@ -178,5 +179,5 @@ if __name__ == "__main__":
         adas_train, adas_test = adas[train_indices], adas[test_indices]
         ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
 
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], len(), validation_data=[x_test, month_test], [dx_test, adas_test, ventricle_test])
+        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]))
 
