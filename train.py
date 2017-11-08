@@ -161,7 +161,10 @@ def test_d2():
 
     (x, month), (dx, adas, ventricle) = parse_data(feature_list, output_list)
 
-    predictions = model.predict([x, month_test])
+    predictions = model.predict([x, month])
+
+    for i, prediction in enumerate(predictions):
+        print('prediction', i, prediction)
 
     with open(results_dir + 'd2_predictions.csv', 'wb') as prediction_file:
         prediction_writer = csv.writer(prediction_file)
