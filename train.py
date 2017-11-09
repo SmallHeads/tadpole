@@ -116,7 +116,7 @@ def train_stacked_autoencoder(x_train, y_train, x_test, y_test):
     return model
 
 
-def parse_data(feature_list, output_list):
+def parse_data(feature_list, output_list, ids):
     # inputs
     x_ = []
     month = []
@@ -126,9 +126,12 @@ def parse_data(feature_list, output_list):
     adas = []
     ventricle = []
 
-    for i, (x, y) in enumerate(zip(feature_list, output_list)):
+    rids = []
+
+    for i, (x, y, adni_id) in enumerate(zip(feature_list, output_list, ids)):
         for y_timepoint in y:
             x_.append(x)
+            rids.append(adni_id)
 
             month.append(y_timepoint[0])
 
@@ -136,7 +139,7 @@ def parse_data(feature_list, output_list):
             adas.append(y_timepoint[2])
             ventricle.append(y_timepoint[3])
 
-    return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='uint8')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32'))
+    return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='uint8')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32')), (np.asarray(rids, dtype='uint8'))
 
 def plot_graphs(hist, results_dir, fold_num):
     epoch_num = range(len(hist.history['future_diagnosis_acc']))
@@ -154,34 +157,32 @@ def plot_graphs(hist, results_dir, fold_num):
     plt.close()
 
 
-def test_d2():
-    model = load_model('E:/tadpole/experiment-10/' + 'best_tadpole_model0.hdf5')
+def test_d2(results_dir):
+    model = load_model(results_dir + 'best_tadpole_model0.hdf5')
 
-    feature_list, output_list, ref_df = compute_data_table(for_predict=True)
+    feature_list, output_list, rids = compute_data_table(for_predict=True)
 
-    (x, month), (dx, adas, ventricle) = parse_data(feature_list, output_list)
+    (x, month), (dx, adas, ventricle), (ids) = parse_data(feature_list, output_list, rids)
 
     predictions = model.predict([x, month])
 
-    for i, prediction in enumerate(predictions):
-        print('prediction', i, prediction)
+    # for i, prediction in enumerate(predictions):
+    #     print('prediction', i, prediction)
 
-    with open(results_dir + 'd2_predictions.csv', 'wb') as prediction_file:
-        prediction_writer = csv.writer(prediction_file)
+    with open(results_dir + 'd2_predictions.csv', 'w') as prediction_file:
+        prediction_writer = csv.writer(prediction_file, lineterminator='\n')
 
-        for prediction in predictions:
-            prediction_writer.writerow(prediction)
-
+        for i, (adni_id, dx, adas, ventricle) in enumerate(zip(ids, predictions[0], predictions[1], predictions[2])):
+            prediction_writer.writerow([adni_id, dx[0], dx[1], dx[2], adas[0], ventricle[0]])
 
 
 if __name__ == "__main__":
-    test_d2()
 
     print('It\'s not the size that counts, it\'s the connections')
 
-    feature_list, output_list, ref_df = compute_data_table()
+    feature_list, output_list, rids = compute_data_table()
 
-    (x, month), (dx, adas, ventricle), ref_df = parse_data(feature_list, output_list)
+    (x, month), (dx, adas, ventricle), (ids) = parse_data(feature_list, output_list, rids)
 
     print('x shape:', x.shape, month.shape)
     print('y shape:', dx.shape, adas.shape, ventricle.shape)
@@ -205,7 +206,7 @@ if __name__ == "__main__":
 
     # skf = StratifiedKFold(n_splits=5)
 
-    ss = ShuffleSplit(n_splits=10)
+    ss = ShuffleSplit(n_splits=1, test_size=0.1)
 
     for k, (train_indices, test_indices) in enumerate(ss.split(range(n_samples))):
         model = mlp(feature_inputs)
@@ -244,4 +245,4 @@ if __name__ == "__main__":
 
         plot_graphs(hist, results_dir, k)
 
-        test_d2()
+        test_d2(results_dir)

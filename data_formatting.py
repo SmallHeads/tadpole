@@ -48,6 +48,7 @@ def compute_data_table(for_predict=False):
 
     x_ = []
     y_ = []
+    rids = []
     selection = data.iloc[sel_index][['RID','Month_bl']]
     for i in range(selection.shape[0]):
         rid, vis_month = selection.iloc[i].values
@@ -67,6 +68,7 @@ def compute_data_table(for_predict=False):
             #print(target_)
             
             y_.append(target_)
+            rids.append(data.iloc[sel_index[i]]["RID"])
             
-    return x_, y_, ref_df
+    return x_, y_, rids
 
