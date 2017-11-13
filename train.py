@@ -198,8 +198,10 @@ def test_d2(results_dir):
     with open(results_dir + 'd2_predictions.csv', 'w') as prediction_file:
         prediction_writer = csv.writer(prediction_file, lineterminator='\n')
 
-        for i, (adni_id, dx, adas, ventricle) in enumerate(zip(ids, predictions[0], predictions[1], predictions[2])):
-            prediction_writer.writerow([adni_id, dx[0], dx[1], dx[2], adas[0], ventricle[0]])
+        prediction_writer.writerow(['ID', 'Months', 'P(Control)', 'P(MCI)', 'P(ALS)', 'ADAS', 'Ventricular Volume'])
+
+        for i, (adni_id, dx, adas, ventricle, m) in enumerate(zip(ids, predictions[0], predictions[1], predictions[2], month)):
+            prediction_writer.writerow([adni_id, m, dx[0], dx[1], dx[2], adas[0], ventricle[0]])
 
 
 if __name__ == "__main__":
@@ -264,7 +266,7 @@ if __name__ == "__main__":
         adas_train, adas_test = adas[train_indices], adas[test_indices]
         ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
 
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=300, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=5, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
 
         model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
         model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
