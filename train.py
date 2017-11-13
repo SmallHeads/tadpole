@@ -29,31 +29,31 @@ def mlp(input_variables):
     features = Input(shape=(input_variables,))
     months = Input(shape=(1,))
 
-    h1 = Dense(256)(features)
+    h1 = Dense(512)(features)
     l1 = LeakyReLU()(h1)
     d1 = Dropout(0.2)(l1)
     n1 = BatchNormalization()(d1)
     h1m = concatenate([n1, months])
 
-    h2 = Dense(512)(h1m)
+    h2 = Dense(1024)(h1m)
     l2 = LeakyReLU()(h2)
     d2 = Dropout(0.3)(l2)
     n2 = BatchNormalization()(d2)
     h2m = concatenate([n2, months])
 
-    h3 = Dense(512)(h2m)
+    h3 = Dense(1024)(h2m)
     l3 = LeakyReLU()(h3)
     d3 = Dropout(0.4)(l3)
     n3 = BatchNormalization()(d3)
     h3m = concatenate([n3, months])
 
-    h4 = Dense(256)(h3m)
+    h4 = Dense(512)(h3m)
     l4 = LeakyReLU()(h4)
     d4 = Dropout(0.5)(l4)
     n4 = BatchNormalization()(d4)
     h4m = concatenate([n4, months])
 
-    h5 = Dense(256)(h4m)
+    h5 = Dense(512)(h4m)
     l5 = LeakyReLU()(h5)
     d5 = Dropout(0.5)(l5)
     n5 = BatchNormalization()(d5)
@@ -220,7 +220,7 @@ if __name__ == "__main__":
                       loss={'future_diagnosis': 'categorical_crossentropy',
                             'ventricle_volume': 'mean_squared_error',
                             'as_cog': 'mean_squared_error'},
-                      loss_weights={'future_diagnosis': 0.6, 'ventricle_volume': 0.4, 'as_cog': 0.0001},
+                      loss_weights={'future_diagnosis': 1.0, 'ventricle_volume': 0.00001, 'as_cog': 0.0001},
                       metrics={'future_diagnosis': 'accuracy',
                                'ventricle_volume': 'mean_squared_error',
                                'as_cog': 'mean_squared_error'}
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         adas_train, adas_test = adas[train_indices], adas[test_indices]
         ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
 
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=20, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=300, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
 
         model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
         model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
