@@ -68,16 +68,37 @@ def mlp(input_variables):
 
     return model
 
+def encoder(input_variables, latent_space_dims):
+    features = Input(shape=(input_variables,))
+    months = Input(shape=(1,))
 
-def autoencoder(input_dims, latent_space_dims):
+    denoise = Dropout(0.3)(features)
+    conditioned_denoised = concatenate([features, months])(denoise)
+    encoded = Dense(latent_space_dims, activation='relu', name='encoded')(conditioned_denoised)
 
-    input = Input(shape=input_dims,)
+    model = Model(inputs=[features, months], outputs=[encoded])
 
-    denoise = Dropout(0.2)(input)
-    encoded = Dense(latent_space_dims, activation='relu', name='encoding')(denoise)
-    decoded = Dense(input_dims, activation='linear')(encoded)
+    return model
 
-    model = Model(input=[input], output=[decoded])
+def decoder(input_variables, latent_space_dims):
+    encoded = Input(shape=(latent_space_dims,))
+    months = Input(shape=(1,))
+
+    decoded = Dense(input_variables, activation='relu', name='decoded')(encoded)
+
+    model = Model(inputs=[encoded], outputs=[decoded])
+
+    return model
+
+def autoencoder(input_variables, latent_space_dims):
+
+    features = Input(shape=(input_variables,))
+    months = Input(shape=(1,))
+
+    enc = encoder(input_variables, latent_space_dims)
+    dec = decoder(input_variables, latent_space_dims)
+
+
 
     return model
 
@@ -85,9 +106,14 @@ def autoencoder(input_dims, latent_space_dims):
 def train_stacked_autoencoder(x_train, y_train, x_test, y_test):
     diagnostic_states = 3
 
+
+
     layer1 = autoencoder(25, 20)
     layer1.compile(optimizer='adam', loss='mean_squared_error')
     layer1.fit(x_train, x_train, epochs=10)
+    # layer1.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=20,
+    #                  validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]),
+    #                  callbacks=[model_checkpoint])
 
     x_train_encoded = layer1.predict(x_train)
 
