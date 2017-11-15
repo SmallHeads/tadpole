@@ -300,3 +300,4 @@ if __name__ == "__main__":
         plot_graphs(hist, results_dir, k)
 
         test_d2(results_dir)
+        test_future(results_dir)
