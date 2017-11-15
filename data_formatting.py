@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 
 
-def compute_data_table(for_predict=False,workdir='C:/Users/adoyle/PycharmProjects/small-heads/data/'):
+def compute_data_table(for_predict=False,workdir='/home/users/adoyle/tadpole/data/'):
 
-    full_df = pd.read_csv(workdir + 'inputed50_cleaned.csv')
-    ref_df = pd.read_csv(workdir + 'inputed50_ref.csv')
+    full_df = pd.read_csv(workdir + 'KNN_50_cleaned.csv')
+    ref_df = pd.read_csv(workdir + 'KNN_50_cleaned_ref.csv')
     d1d2 = pd.read_csv(workdir + 'TADPOLE_D1_D2.csv')
 
     full_df.drop(full_df.columns[0], axis=1, inplace=True)
