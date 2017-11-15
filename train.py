@@ -225,7 +225,7 @@ def test_future(results_dir):
                 # all_features = feature_line[1:-1]
                 rid = feature_line[-1]
 
-                predictions = model.predict([np.asarray(feature_line, dtype='float32'), np.asarray(month, dtype='float32')])
+                predictions = model.predict([np.asarray(feature_line, dtype='float32')[np.newaxis, ...], np.asarray(month, dtype='float32')])
 
                 prediction_writer.writerow([rid, month, predictions[0][0], predictions[0][1], predictions[0][2], predictions[1][0], predictions[2][0]])
 
