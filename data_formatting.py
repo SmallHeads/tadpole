@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def compute_data_table(for_predict=False):
-    workdir = 'C:/Users/adoyle/PycharmProjects/small-heads/data/'
+def compute_data_table(for_predict=False,workdir='C:/Users/adoyle/PycharmProjects/small-heads/data/'):
 
     full_df = pd.read_csv(workdir + 'inputed50_cleaned.csv')
     ref_df = pd.read_csv(workdir + 'inputed50_ref.csv')
@@ -17,6 +16,7 @@ def compute_data_table(for_predict=False):
         ref_df.loc[ref_df.RID==sub,'y_DX'] = jnk.values
 
     full_df = full_df.loc[ref_df.dropna().index].reset_index(drop=True)
+    d1d2 = d1d2.loc[ref_df.dropna().index].reset_index(drop=True)
     ref_df = ref_df.loc[ref_df.dropna().index].reset_index(drop=True)
 
     code = {1: 0, 2:1, 3:2}
@@ -68,7 +68,7 @@ def compute_data_table(for_predict=False):
             #print(target_)
             
             y_.append(target_)
-            rids.append(data.iloc[sel_index[i]]["RID"])
+            rids.append(rid)
             
     return x_, y_, rids
 
