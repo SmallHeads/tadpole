@@ -21,7 +21,7 @@ import numpy as np
 
 from data_formatting import compute_data_table
 
-workdir = '/home/users/adoyle/tadpole/'
+workdir = '/home/users/adoyle/tadpole/data/'
 
 def mlp(input_variables):
     diagnostic_states = 3
