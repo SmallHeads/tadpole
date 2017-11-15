@@ -216,7 +216,7 @@ if __name__ == "__main__":
     print('y shape:', dx.shape, adas.shape, ventricle.shape)
 
     try:
-        experiment_number = pkl.load(open(workdir + 'experiment_number.pkl', 'r'))
+        experiment_number = pkl.load(open(workdir + 'experiment_number.pkl', 'rb'))
         experiment_number += 1
     except:
         print('Couldnt find the file to load experiment number')
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     results_dir = workdir + '/experiment-' + str(experiment_number) + '/'
     os.makedirs(results_dir)
 
-    pkl.dump(experiment_number, open(workdir + 'experiment_number.pkl', 'w'))
+    pkl.dump(experiment_number, open(workdir + 'experiment_number.pkl', 'wb'))
 
     n_samples = x.shape[0]
     feature_inputs = x.shape[1]
