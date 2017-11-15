@@ -30,13 +30,13 @@ def compute_data_table(for_predict=False,workdir='/home/users/adoyle/tadpole/dat
 
     data = full_df
 
-    target = ref_df[['y_DX', 'y_ADAS13', 'ventr_icv_ratio']]
+    target = ref_df[['y_DX', 'y_ADAS13', 'ventr_ICV_ratio']]
     # target = target.dropna(axis=0)
     # data = data.loc[target.index]
     # data = data.dropna(axis=1)
     # target = target.loc[data.index]
     target['Month_bl'] = data['Month_bl']
-    target = target[['Month_bl', 'y_DX', 'y_ADAS13', 'ventr_icv_ratio']]
+    target = target[['Month_bl', 'y_DX', 'y_ADAS13', 'ventr_ICV_ratio']]
 
     for col in target.columns[1:]:
         data[col] = target[col]
