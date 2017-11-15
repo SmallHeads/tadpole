@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def compute_data_table(for_predict=False,workdir='/home/users/adoyle/tadpole/'):
+def compute_data_table(for_predict=False,workdir='/home/users/adoyle/tadpole/data/'):
 
     full_df = pd.read_csv(workdir + 'KNN_50_cleaned.csv')
     ref_df = pd.read_csv(workdir + 'KNN_50_cleaned_ref.csv')
