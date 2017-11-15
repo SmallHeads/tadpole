@@ -10,6 +10,8 @@ from sklearn.model_selection import ShuffleSplit
 from sklearn.model_selection import StratifiedShuffleSplit, StratifiedKFold
 from keras.callbacks import ModelCheckpoint
 
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 import csv
@@ -202,6 +204,30 @@ def test_d2(results_dir):
 
         for i, (adni_id, dx, adas, ventricle, m) in enumerate(zip(ids, predictions[0], predictions[1], predictions[2], month)):
             prediction_writer.writerow([adni_id, m, dx[0], dx[1], dx[2], adas[0], ventricle[0]])
+
+def test_future(results_dir):
+    model = load_model(results_dir + 'best_tadpole_model0.hdf5')
+
+    feature_file = workdir + 'ADAS_prediction_matrix.csv'
+
+    with open(results_dir + 'future_predictions.csv', 'w') as prediction_file:
+        prediction_writer = csv.writer(prediction_file, lineterminator='\n')
+
+        prediction_writer.writerow(['ID', 'Months', 'P(Control)', 'P(MCI)', 'P(ALS)', 'ADAS', 'Ventricular Volume'])
+
+        with open(feature_file, 'r') as features:
+            feature_reader = csv.reader(features)
+            next(feature_reader)
+
+            for m, feature_line in enumerate(feature_reader):
+
+                month = (m+1)%60
+                all_features = feature_line[1:-1]
+                rid = feature_line[-1]
+
+                predictions = model.predict([all_features, month])
+
+                prediction_writer.writerow([rid, month, predictions[0][0], predictions[0][1], predictions[0][2], predictions[1][0], predictions[2][0]])
 
 
 if __name__ == "__main__":
