@@ -231,7 +231,7 @@ def test_future(results_dir):
                 rid = feature_line[-5]
                 del feature_line[-5]
 
-                print(len(feature_line))
+                print(len(feature_line), month)
 
                 features = np.asarray(feature_line[:-1], dtype='float32')
 
