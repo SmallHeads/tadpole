@@ -221,14 +221,16 @@ def test_future(results_dir):
 
             for m, feature_line in enumerate(feature_reader):
 
+                if len(feature_line[-3]) > 0:
+                    feature_line[-2] = int(feature_line[-2]) - 1
+                else:
+                    feature_line[-2] = 0
+
                 month = (m+1)%60
                 # all_features = feature_line[1:-1]
                 rid = feature_line[:-5]
                 features = np.hstack((np.asarray(feature_line[:-6], dtype='float32'), np.asarray(feature_line[-4:-1], dtype='float32')))
-                if len(features[-2]) > 0:
-                    features[-2] = features[-2] - 1
-                else:
-                    features[-2] = 0
+
 
 
                 predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')])
