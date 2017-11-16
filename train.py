@@ -240,7 +240,9 @@ def test_future(results_dir):
                 predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')[np.newaxis, ...]])
 
                 print(predictions)
-                prediction_writer.writerow([rid, month, predictions[0][0], predictions[0][1], predictions[0][2], predictions[1], predictions[2]])
+                dx = predictions[0]
+                print(dx)
+                prediction_writer.writerow([rid, month, dx[0], dx[1], dx[2], predictions[1], predictions[2]])
 
 
 if __name__ == "__main__":
