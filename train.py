@@ -254,7 +254,7 @@ def test_future(results_dir):
 
 
 if __name__ == "__main__":
-    test_future('/home/users/adoyle/tadpole/data/experiment-5/')
+    # test_future('/home/users/adoyle/tadpole/data/experiment-5/')
 
     print('It\'s not the size that counts, it\'s the connections')
 
