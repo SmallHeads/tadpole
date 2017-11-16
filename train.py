@@ -221,10 +221,11 @@ def test_future(results_dir):
 
             for m, feature_line in enumerate(feature_reader):
 
-                if len(feature_line[-3]) > 0:
-                    feature_line[-3] = int(float(feature_line[-3]) - 1)
+                if len(str(feature_line[-3])) > 0:
+                    feature_line[-3] = int(feature_line[-3]) - 1
                 else:
-                    feature_line[-3] = int(0)
+                    feature_line[-3] = 1
+                    print('missing dx')
 
                 month = float((m+1)%60)
                 # all_features = feature_line[1:-1]
@@ -235,15 +236,16 @@ def test_future(results_dir):
 
                 features = np.asarray(feature_line[:-1], dtype='float32')
 
-                print(features.shape)
+                # print(features.shape)
 
                 predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')[np.newaxis, ...]])
 
-                print(predictions)
                 dx = predictions[0]
                 adas = predictions[1]
                 vent = predictions[2]
-                print(dx)
+
+                print(predictions, dx)
+
                 prediction_writer.writerow([rid, month, dx[0][0], dx[0][1], dx[0][2], adas[0][0], vent[0][0]])
 
 
