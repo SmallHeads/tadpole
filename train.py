@@ -231,6 +231,8 @@ def test_future(results_dir):
                 rid = feature_line[-5]
                 del feature_line[-5]
 
+                print(len(feature_line))
+
                 features = np.asarray(feature_line[:-1], dtype='float32')
 
                 predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')])
