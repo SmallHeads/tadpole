@@ -228,8 +228,8 @@ def test_future(results_dir):
 
                 month = (m+1)%60
                 # all_features = feature_line[1:-1]
-                rid = feature_line[:-5]
-                del feature_line[:-5]
+                rid = feature_line[-5]
+                del feature_line[-5]
 
                 features = np.asarray(feature_line[:-1], dtype='float32')
 
