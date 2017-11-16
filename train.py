@@ -223,81 +223,88 @@ def test_future(results_dir):
 
                 month = (m+1)%60
                 # all_features = feature_line[1:-1]
-                rid = feature_line[-1]
+                rid = feature_line[:-5]
+                features = np.hstack((np.asarray(feature_line[:-6], dtype='float32'), np.asarray(feature_line[-4:-1], dtype='float32')))
+                if len(features[-2]) > 0:
+                    features[-2] = features[-2] - 1
+                else:
+                    features[-2] = 0
 
-                predictions = model.predict([np.asarray(feature_line, dtype='float32')[np.newaxis, ...], np.asarray(month, dtype='float32')])
+
+                predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')])
 
                 prediction_writer.writerow([rid, month, predictions[0][0], predictions[0][1], predictions[0][2], predictions[1][0], predictions[2][0]])
 
 
 if __name__ == "__main__":
-
-    print('It\'s not the size that counts, it\'s the connections')
-
-    feature_list, output_list, rids = compute_data_table()
-
-    (x, month), (dx, adas, ventricle), (ids) = parse_data(feature_list, output_list, rids)
-
-    print('x shape:', x.shape, month.shape)
-    print('y shape:', dx.shape, adas.shape, ventricle.shape)
-
-    try:
-        experiment_number = pkl.load(open(workdir + 'experiment_number.pkl', 'rb'))
-        experiment_number += 1
-    except:
-        print('Couldnt find the file to load experiment number')
-        experiment_number = 0
-
-    print('This is experiment number:', experiment_number)
-
-    results_dir = workdir + '/experiment-' + str(experiment_number) + '/'
-    os.makedirs(results_dir)
-
-    pkl.dump(experiment_number, open(workdir + 'experiment_number.pkl', 'wb'))
-
-    n_samples = x.shape[0]
-    feature_inputs = x.shape[1]
-
-    # skf = StratifiedKFold(n_splits=5)
-
-    ss = ShuffleSplit(n_splits=1, test_size=0.1)
-
-    for k, (train_indices, test_indices) in enumerate(ss.split(range(n_samples))):
-        model = mlp(feature_inputs)
-        model.summary()
-
-        model_checkpoint = ModelCheckpoint(results_dir + "best_weights_fold_" + str(k) + ".hdf5",
-                                           monitor="val_future_diagnosis_acc",
-                                           save_best_only=True)
-
-        model.compile(optimizer='adam',
-                      loss={'future_diagnosis': 'categorical_crossentropy',
-                            'ventricle_volume': 'mean_squared_error',
-                            'as_cog': 'mean_squared_error'},
-                      loss_weights={'future_diagnosis': 1.0, 'ventricle_volume': 0.00001, 'as_cog': 0.0001},
-                      metrics={'future_diagnosis': 'accuracy',
-                               'ventricle_volume': 'mean_squared_error',
-                               'as_cog': 'mean_squared_error'}
-                      )
-
-        print(model.metrics_names)
-        print(model.metrics)
-
-        #inputs
-        x_train, x_test = x[train_indices], x[test_indices]
-        month_train, month_test = month[train_indices], month[test_indices]
-
-        #outputs
-        dx_train, dx_test = dx[train_indices], dx[test_indices]
-        adas_train, adas_test = adas[train_indices], adas[test_indices]
-        ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
-
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=200, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
-
-        model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
-        model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
-
-        plot_graphs(hist, results_dir, k)
-
-        test_d2(results_dir)
-        test_future(results_dir)
+    test_future('/home/users/adoyle/tadpole/data/experiment-5/')
+    #
+    # print('It\'s not the size that counts, it\'s the connections')
+    #
+    # feature_list, output_list, rids = compute_data_table()
+    #
+    # (x, month), (dx, adas, ventricle), (ids) = parse_data(feature_list, output_list, rids)
+    #
+    # print('x shape:', x.shape, month.shape)
+    # print('y shape:', dx.shape, adas.shape, ventricle.shape)
+    #
+    # try:
+    #     experiment_number = pkl.load(open(workdir + 'experiment_number.pkl', 'rb'))
+    #     experiment_number += 1
+    # except:
+    #     print('Couldnt find the file to load experiment number')
+    #     experiment_number = 0
+    #
+    # print('This is experiment number:', experiment_number)
+    #
+    # results_dir = workdir + '/experiment-' + str(experiment_number) + '/'
+    # os.makedirs(results_dir)
+    #
+    # pkl.dump(experiment_number, open(workdir + 'experiment_number.pkl', 'wb'))
+    #
+    # n_samples = x.shape[0]
+    # feature_inputs = x.shape[1]
+    #
+    # # skf = StratifiedKFold(n_splits=5)
+    #
+    # ss = ShuffleSplit(n_splits=1, test_size=0.1)
+    #
+    # for k, (train_indices, test_indices) in enumerate(ss.split(range(n_samples))):
+    #     model = mlp(feature_inputs)
+    #     model.summary()
+    #
+    #     model_checkpoint = ModelCheckpoint(results_dir + "best_weights_fold_" + str(k) + ".hdf5",
+    #                                        monitor="val_future_diagnosis_acc",
+    #                                        save_best_only=True)
+    #
+    #     model.compile(optimizer='adam',
+    #                   loss={'future_diagnosis': 'categorical_crossentropy',
+    #                         'ventricle_volume': 'mean_squared_error',
+    #                         'as_cog': 'mean_squared_error'},
+    #                   loss_weights={'future_diagnosis': 1.0, 'ventricle_volume': 0.00001, 'as_cog': 0.0001},
+    #                   metrics={'future_diagnosis': 'accuracy',
+    #                            'ventricle_volume': 'mean_squared_error',
+    #                            'as_cog': 'mean_squared_error'}
+    #                   )
+    #
+    #     print(model.metrics_names)
+    #     print(model.metrics)
+    #
+    #     #inputs
+    #     x_train, x_test = x[train_indices], x[test_indices]
+    #     month_train, month_test = month[train_indices], month[test_indices]
+    #
+    #     #outputs
+    #     dx_train, dx_test = dx[train_indices], dx[test_indices]
+    #     adas_train, adas_test = adas[train_indices], adas[test_indices]
+    #     ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
+    #
+    #     hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=200, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+    #
+    #     model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
+    #     model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
+    #
+    #     plot_graphs(hist, results_dir, k)
+    #
+    #     test_d2(results_dir)
+    #     test_future(results_dir)
