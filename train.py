@@ -221,13 +221,15 @@ def test_future(results_dir):
 
             for m, feature_line in enumerate(feature_reader):
 
+                print(feature_line)
+
                 if len(str(feature_line[-3])) > 0:
                     feature_line[-3] = float(feature_line[-3]) - 1
                 else:
                     feature_line[-3] = 1
                     print('missing dx')
 
-                month = float((m+1)%60)
+                month = float(int(m+1)%60)
                 # all_features = feature_line[1:-1]
                 rid = feature_line[-5]
                 del feature_line[-5]
