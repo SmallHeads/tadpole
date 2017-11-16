@@ -229,6 +229,8 @@ def test_future(results_dir):
                     feature_line[-3] = 1
                     print('missing dx')
 
+                feature_line[0] = 0
+
                 month = float(int(m+1)%60)
                 # all_features = feature_line[1:-1]
                 rid = feature_line[-5]
