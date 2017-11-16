@@ -226,7 +226,7 @@ def test_future(results_dir):
                 else:
                     feature_line[-3] = int(0)
 
-                month = (m+1)%60
+                month = float((m+1)%60)
                 # all_features = feature_line[1:-1]
                 rid = feature_line[-5]
                 del feature_line[-5]
@@ -237,7 +237,7 @@ def test_future(results_dir):
 
                 print(features.shape)
 
-                predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')])
+                predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')[np.newaxis, ...]])
 
                 prediction_writer.writerow([rid, month, predictions[0][0], predictions[0][1], predictions[0][2], predictions[1][0], predictions[2][0]])
 
