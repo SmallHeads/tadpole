@@ -229,9 +229,9 @@ def test_future(results_dir):
                 month = (m+1)%60
                 # all_features = feature_line[1:-1]
                 rid = feature_line[:-5]
-                features = np.hstack((np.asarray(feature_line[:-6], dtype='float32'), np.asarray(feature_line[-4:-1], dtype='float32')))
+                del feature_line[:-5]
 
-
+                features = np.asarray(feature_line[:-1], dtype='float32')
 
                 predictions = model.predict([features[np.newaxis, ...], np.asarray(month, dtype='float32')])
 
