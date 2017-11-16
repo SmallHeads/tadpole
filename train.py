@@ -222,7 +222,7 @@ def test_future(results_dir):
             for m, feature_line in enumerate(feature_reader):
 
                 if len(str(feature_line[-3])) > 0:
-                    feature_line[-3] = int(feature_line[-3]) - 1
+                    feature_line[-3] = float(feature_line[-3]) - 1
                 else:
                     feature_line[-3] = 1
                     print('missing dx')
