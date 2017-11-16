@@ -221,7 +221,7 @@ def test_future(results_dir):
 
             for m, feature_line in enumerate(feature_reader):
 
-                print(feature_line)
+                print(feature_line[:5])
 
                 if len(str(feature_line[-3])) > 0:
                     feature_line[-3] = float(feature_line[-3]) - 1
