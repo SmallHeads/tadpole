@@ -244,7 +244,7 @@ def test_future(results_dir):
                 adas = predictions[1]
                 vent = predictions[2]
                 print(dx)
-                prediction_writer.writerow([rid, month, dx[0], dx[1], dx[2], adas[0], vent[0]])
+                prediction_writer.writerow([rid, month, dx[0][0], dx[0][1], dx[0][2], adas[0][0], vent[0][0]])
 
 
 if __name__ == "__main__":
