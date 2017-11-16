@@ -316,7 +316,7 @@ if __name__ == "__main__":
         adas_train, adas_test = adas[train_indices], adas[test_indices]
         ventricle_train, ventricle_test = ventricle[train_indices], ventricle[test_indices]
 
-        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=200, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_train, month_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_test, month_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
 
         model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
         model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
