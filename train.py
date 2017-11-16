@@ -222,9 +222,9 @@ def test_future(results_dir):
             for m, feature_line in enumerate(feature_reader):
 
                 if len(feature_line[-3]) > 0:
-                    feature_line[-3] = int(feature_line[-3]) - 1
+                    feature_line[-3] = int(float(feature_line[-3]) - 1)
                 else:
-                    feature_line[-3] = 0
+                    feature_line[-3] = int(0)
 
                 month = (m+1)%60
                 # all_features = feature_line[1:-1]
