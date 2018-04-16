@@ -127,44 +127,46 @@ if __name__ == "__main__":
         print('Column names')
         print(training_table.columns.values.tolist())
 
-        x_t_train = training_table.iloc[1:-4]
-        y_t_train = training_table.iloc[]
+        print(training_table.shape)
 
-        x_t_train, y_t_train, delta_t_train, y_t_next_train = training_sample(train_rids)
-        x_t_test, y_t_test, delta_t_test, y_t_next_test = training_sample(train_rids)
-
-        # prediction targets
-        dx_train, dx_test = y_t_train[:, 0], y_t_test[:, 0]
-        adas_train, adas_test = y_t_train[:, 1], y_t_test[:, 1]
-        ventricle_train, ventricle_test = y_t_train[:, 2], y_t_test[:, 2]
-
-
-        model = mlp(feature_inputs)
-        model.summary()
-
-        model_checkpoint = ModelCheckpoint(results_dir + "best_weights_fold_" + str(k) + ".hdf5",
-                                           monitor="val_future_diagnosis_acc",
-                                           save_best_only=True)
-
-        model.compile(optimizer='adam',
-                      loss={'future_diagnosis': 'categorical_crossentropy',
-                            'ventricle_volume': 'mean_squared_error',
-                            'as_cog': 'mean_squared_error'},
-                      loss_weights={'future_diagnosis': 0.00001, 'ventricle_volume': 1, 'as_cog': 0.0001},
-                      metrics={'future_diagnosis': 'accuracy',
-                               'ventricle_volume': 'mean_squared_error',
-                               'as_cog': 'mean_squared_error'}
-                      )
-
-        print(model.metrics_names)
-        print(model.metrics)
-
-        hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_t_train, y_t_train, delta_t_train], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
-
-        model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
-        model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
-
-        plot_graphs(hist, results_dir, k)
-
-        test_d2(results_dir)
-        test_future(results_dir)
+        # x_t_train = training_table.iloc[1:-4]
+        # y_t_train = training_table.iloc[]
+        #
+        # x_t_train, y_t_train, delta_t_train, y_t_next_train = training_sample(train_rids)
+        # x_t_test, y_t_test, delta_t_test, y_t_next_test = training_sample(train_rids)
+        #
+        # # prediction targets
+        # dx_train, dx_test = y_t_train[:, 0], y_t_test[:, 0]
+        # adas_train, adas_test = y_t_train[:, 1], y_t_test[:, 1]
+        # ventricle_train, ventricle_test = y_t_train[:, 2], y_t_test[:, 2]
+        #
+        #
+        # model = mlp(feature_inputs)
+        # model.summary()
+        #
+        # model_checkpoint = ModelCheckpoint(results_dir + "best_weights_fold_" + str(k) + ".hdf5",
+        #                                    monitor="val_future_diagnosis_acc",
+        #                                    save_best_only=True)
+        #
+        # model.compile(optimizer='adam',
+        #               loss={'future_diagnosis': 'categorical_crossentropy',
+        #                     'ventricle_volume': 'mean_squared_error',
+        #                     'as_cog': 'mean_squared_error'},
+        #               loss_weights={'future_diagnosis': 0.00001, 'ventricle_volume': 1, 'as_cog': 0.0001},
+        #               metrics={'future_diagnosis': 'accuracy',
+        #                        'ventricle_volume': 'mean_squared_error',
+        #                        'as_cog': 'mean_squared_error'}
+        #               )
+        #
+        # print(model.metrics_names)
+        # print(model.metrics)
+        #
+        # hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_t_train, y_t_train, delta_t_train], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        #
+        # model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
+        # model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
+        #
+        # plot_graphs(hist, results_dir, k)
+        #
+        # test_d2(results_dir)
+        # test_future(results_dir)
