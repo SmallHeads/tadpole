@@ -9,7 +9,7 @@ def mlp(x_t_length):
     diagnostic_states = 3
 
     x_t = Input(shape=(x_t_length,))
-    y_t = Input(shape=(3,))
+    y_t = Input(shape=(5,))
     delta_t = Input(shape=(1,))
 
     h1 = Dense(512)(x_t)
