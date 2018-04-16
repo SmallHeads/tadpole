@@ -18,7 +18,7 @@ import pickle as pkl
 import numpy as np
 import pandas as pd
 
-from Make_test_table import create_test_table
+from ipynb.fs.defs.Make_test_table import create_test_table
 
 workdir = '/home/users/adoyle/tadpole/data/'
 
