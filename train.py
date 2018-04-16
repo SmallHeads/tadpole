@@ -156,7 +156,11 @@ if __name__ == "__main__":
 
         print(dx_train)
 
-        
+        y_t_train = to_categorical(dx_train, num_classes=3)
+        y_t_test = to_categorical(dx_test, num_classes=3)
+
+        y_t_train = np.hstack((y_t_train, adas_train, ventricle_train))
+        y_t_test = np.hstack((y_t_test, adas_test, ventricle_test))
 
 
         model = mlp(x_t_train.shape[-1])
