@@ -150,9 +150,9 @@ if __name__ == "__main__":
         delta_t_test = training_table.iloc[-4]
 
         # prediction targets
-        dx_train, dx_test = y_t_train[:, 0], y_t_test[:, 0]
-        adas_train, adas_test = y_t_train[:, 1], y_t_test[:, 1]
-        ventricle_train, ventricle_test = y_t_train[:, 2], y_t_test[:, 2]
+        dx_train, dx_test = y_t_train.iloc[:, 0], y_t_test.iloc[:, 0]
+        adas_train, adas_test = y_t_train.iloc[:, 1], y_t_test.iloc[:, 1]
+        ventricle_train, ventricle_test = y_t_train.iloc[:, 2], y_t_test.iloc[:, 2]
 
 
         model = mlp(x_t_train.shape[-1])
