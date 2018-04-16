@@ -150,17 +150,14 @@ if __name__ == "__main__":
         delta_t_test = training_table.iloc[-4]
 
         # prediction targets
-        dx_train, dx_test = y_t_train.iloc[1], y_t_test.iloc[1]
-        adas_train, adas_test = y_t_train.iloc[2], y_t_test.iloc[2]
-        ventricle_train, ventricle_test = y_t_train.iloc[3], y_t_test.iloc[3]
-
+        dx_train, dx_test = to_categorical(y_t_next_train.iloc[0], num_classes=3), to_categorical(y_t_next_test.iloc[0], num_classes=3)
         print(dx_train)
 
-        y_t_train = to_categorical(dx_train, num_classes=3)
-        y_t_test = to_categorical(dx_test, num_classes=3)
+        adas_train, adas_test = y_t_next_train.iloc[1], y_t_next_test.iloc[1]
+        ventricle_train, ventricle_test = y_t_next_train.iloc[2], y_t_next_test.iloc[2]
 
-        y_t_train = np.hstack((y_t_train, adas_train, ventricle_train))
-        y_t_test = np.hstack((y_t_test, adas_test, ventricle_test))
+        y_t_train_categorical = np.hstack((to_categorical(y_t_train.iloc[0], num_classes=3)), y_t_train.iloc[1], y_t_train.iloc[2])
+        y_t_test_categorical = np.hstack((to_categorical(y_t_test.iloc[0], num_classes=3)), y_t_test.iloc[1], y_t_test.iloc[2])
 
 
         model = mlp(x_t_train.shape[-1])
