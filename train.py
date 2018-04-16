@@ -10,42 +10,19 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-import csv
+import csv, os
 
-import os
 import pickle as pkl
 
 import numpy as np
+import pandas as pd
 
-from data_formatting import compute_data_table
+from Make_test_table import create_test_table
 
 workdir = '/home/users/adoyle/tadpole/data/'
 
-
-def parse_data(feature_list, output_list, ids):
-    # inputs
-    x_ = []
-    month = []
-
-    # outputs
-    dx = []
-    adas = []
-    ventricle = []
-
-    rids = []
-
-    for i, (x, y, adni_id) in enumerate(zip(feature_list, output_list, ids)):
-        for y_timepoint in y:
-            x_.append(x)
-            rids.append(adni_id)
-
-            month.append(y_timepoint[0])
-
-            dx.append(y_timepoint[1])
-            adas.append(y_timepoint[2])
-            ventricle.append(y_timepoint[3])
-
-    return (np.asarray(x_, dtype='float32'), np.asarray(month, dtype='float32')), (to_categorical(np.asarray((dx), dtype='uint8')), np.asarray(adas, dtype='float32'), np.asarray(ventricle, dtype='float32')), (np.asarray(rids, dtype='uint8'))
+in_df = pd.read_csv(workdir + 'KNN_50_cleaned.csv', index_col=0)
+ref_df = pd.read_csv(workdir + 'KNN_50_cleaned_ref.csv', index_col=0)
 
 def plot_graphs(hist, results_dir, fold_num):
     epoch_num = range(len(hist.history['future_diagnosis_acc']))
@@ -86,7 +63,7 @@ def test_d2(results_dir):
 def test_future(rids, results_dir):
     model = load_model(results_dir + 'best_tadpole_model0.hdf5')
 
-    x_t, y_t, delta_t = testing_sample(rids) # delta t here is the time from the last available timepoint for that subject
+    x_t, y_t, delta_t = create_data_table(rids) # delta t here is the time from the last available timepoint for that subject
 
     with open(results_dir + 'future_predictions.csv', 'w') as prediction_file:
         prediction_writer = csv.writer(prediction_file, lineterminator='\n')
@@ -122,12 +99,9 @@ if __name__ == "__main__":
 
     print('It\'s not the size that counts, it\'s the connections')
 
-    feature_list, output_list, rids = compute_data_table()
+    all_rids = in_df['RID'].unique()
 
-    (x, month), (dx, adas, ventricle), (ids) = parse_data(feature_list, output_list, rids)
-
-    print('x shape:', x.shape, month.shape)
-    print('y shape:', dx.shape, adas.shape, ventricle.shape)
+    print('There are', len(all_rids), 'subjects total in the ADNI dataset')
 
     try:
         experiment_number = pkl.load(open(workdir + 'experiment_number.pkl', 'rb'))
@@ -143,12 +117,28 @@ if __name__ == "__main__":
 
     pkl.dump(experiment_number, open(workdir + 'experiment_number.pkl', 'wb'))
 
-    n_samples = x.shape[0]
-    feature_inputs = x.shape[1]
 
     kf = KFold(n_splits=5, shuffle=True)
 
-    for k, (train_rids, test_rids) in enumerate(kf.split(rids)):
+    for k, (train_rids, test_rids) in enumerate(kf.split(all_rids)):
+
+        training_table = create_test_table(in_df, ref_df, train_rids, mode='train')
+
+        print('Column names')
+        print(training_table.columns.values.tolist())
+
+        x_t_train = training_table.iloc[1:-4]
+        y_t_train = training_table.iloc[]
+
+        x_t_train, y_t_train, delta_t_train, y_t_next_train = training_sample(train_rids)
+        x_t_test, y_t_test, delta_t_test, y_t_next_test = training_sample(train_rids)
+
+        # prediction targets
+        dx_train, dx_test = y_t_train[:, 0], y_t_test[:, 0]
+        adas_train, adas_test = y_t_train[:, 1], y_t_test[:, 1]
+        ventricle_train, ventricle_test = y_t_train[:, 2], y_t_test[:, 2]
+
+
         model = mlp(feature_inputs)
         model.summary()
 
@@ -168,14 +158,6 @@ if __name__ == "__main__":
 
         print(model.metrics_names)
         print(model.metrics)
-
-        x_t_train, y_t_train, delta_t_train, y_t_next_train = training_sample(train_rids)
-        x_t_test, y_t_test, delta_t_test, y_t_next_test = training_sample(train_rids)
-
-        # prediction targets
-        dx_train, dx_test = y_t_train[:, 0], y_t_test[:, 0]
-        adas_train, adas_test = y_t_train[:, 1], y_t_test[:, 1]
-        ventricle_train, ventricle_test = y_t_train[:, 2], y_t_test[:, 2]
 
         hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_t_train, y_t_train, delta_t_train], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
 
