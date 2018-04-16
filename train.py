@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     print('It\'s not the size that counts, it\'s the connections')
 
-    print(in_df.columns.to_list())
+    print(in_df.columns.values)
 
     all_rids = in_df['RIDS'].unique()
 
