@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     print('It\'s not the size that counts, it\'s the connections')
 
-    all_rids = in_df['RID'].unique()
+    all_rids = in_df['RIDS'].unique()
 
     print('There are', len(all_rids), 'subjects total in the ADNI dataset')
 
