@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     for k, (train_rids, test_rids) in enumerate(kf.split(all_rids)):
 
-        training_table = create_test_table(in_df, ref_df, train_rids, mode='train')
+        training_table = create_test_table(in_df, ref_df, train_rids, mode='train').dropna()
 
         headers = training_table.columns.values
 
