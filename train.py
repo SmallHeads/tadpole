@@ -150,6 +150,8 @@ if __name__ == "__main__":
         delta_t_test = training_table.iloc[:, -4]
 
         # prediction targets
+        print(y_t_next_train.iloc[:, 0])
+
         dx_train, dx_test = to_categorical(y_t_next_train.iloc[:, 0], num_classes=3), to_categorical(y_t_next_test.iloc[:, 0], num_classes=3)
         print(dx_train)
 
