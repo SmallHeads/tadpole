@@ -150,13 +150,14 @@ if __name__ == "__main__":
         delta_t_test = training_table.iloc[:, -4]
 
         # prediction targets
-        print(y_t_next_train.iloc[:, 0])
-
         dx_train, dx_test = to_categorical(y_t_next_train.iloc[:, 0]-1, num_classes=3), to_categorical(y_t_next_test.iloc[:, 0]-1, num_classes=3)
-        print(dx_train)
 
         adas_train, adas_test = y_t_next_train.iloc[:, 1], y_t_next_test.iloc[:, 1]
         ventricle_train, ventricle_test = y_t_next_train.iloc[:, 2], y_t_next_test.iloc[:, 2]
+
+        print(dx_train.shape, adas_train.shape, ventricle_train.shape)
+        print(dx_test.shape, adas_test.shape, ventricle_test.shape)
+
 
         y_t_train_categorical = np.hstack((dx_train, adas_train, ventricle_train))
         y_t_test_categorical = np.hstack((dx_test, adas_test, ventricle_test))
