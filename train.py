@@ -136,28 +136,28 @@ if __name__ == "__main__":
         print('Timestep:', headers[-4])
 
         # rids = training_table.iloc[0]
-        x_t_train = training_table.iloc[1:-7]
-        y_t_train = training_table.iloc[-7:-4]
-        y_t_next_train = training_table.iloc[-3:]
-        delta_t_train = training_table.iloc[-4]
+        x_t_train = training_table.iloc[:, 1:-7]
+        y_t_train = training_table.iloc[:, -7:-4]
+        y_t_next_train = training_table.iloc[:, -3:]
+        delta_t_train = training_table.iloc[:, -4]
 
-        testing_table = create_test_table(in_df, ref_df, test_rids, mode='train')
+        testing_table = create_test_table(in_df, ref_df, test_rids, mode='train').dropna()
 
         # rids = training_table.iloc[0]
-        x_t_test = training_table.iloc[1:-7]
-        y_t_test = training_table.iloc[-7:-4]
-        y_t_next_test = training_table.iloc[-3:]
-        delta_t_test = training_table.iloc[-4]
+        x_t_test = training_table.iloc[:, 1:-7]
+        y_t_test = training_table.iloc[:, -7:-4]
+        y_t_next_test = training_table.iloc[:, -3:]
+        delta_t_test = training_table.iloc[:, -4]
 
         # prediction targets
-        dx_train, dx_test = to_categorical(y_t_next_train.iloc[0], num_classes=3), to_categorical(y_t_next_test.iloc[0], num_classes=3)
+        dx_train, dx_test = to_categorical(y_t_next_train.iloc[:, 0], num_classes=3), to_categorical(y_t_next_test.iloc[:, 0], num_classes=3)
         print(dx_train)
 
-        adas_train, adas_test = y_t_next_train.iloc[1], y_t_next_test.iloc[1]
-        ventricle_train, ventricle_test = y_t_next_train.iloc[2], y_t_next_test.iloc[2]
+        adas_train, adas_test = y_t_next_train.iloc[:, 1], y_t_next_test.iloc[:, 1]
+        ventricle_train, ventricle_test = y_t_next_train.iloc[:, 2], y_t_next_test.iloc[:, 2]
 
-        y_t_train_categorical = np.hstack((to_categorical(y_t_train.iloc[0], num_classes=3)), y_t_train.iloc[1], y_t_train.iloc[2])
-        y_t_test_categorical = np.hstack((to_categorical(y_t_test.iloc[0], num_classes=3)), y_t_test.iloc[1], y_t_test.iloc[2])
+        y_t_train_categorical = np.hstack((dx_train, y_t_train.iloc[:, 1], y_t_train.iloc[:, 2]))
+        y_t_test_categorical = np.hstack((dx_test, y_t_test.iloc[:, 1], y_t_test.iloc[:, 2]))
 
 
         model = mlp(x_t_train.shape[-1])
