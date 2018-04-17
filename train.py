@@ -159,8 +159,11 @@ if __name__ == "__main__":
         print(dx_test.shape, adas_test.shape, ventricle_test.shape)
 
 
-        y_t_train_categorical = np.hstack((dx_train, np.reshape(adas_train, (adas_train.shape[0], 1)), np.reshape(ventricle_train, (ventricle_train.shape[0], 1))))
-        y_t_test_categorical = np.hstack((dx_test, np.reshape(adas_test, (adas_test.shape[0], 1)), np.reshape(ventricle_test, (ventricle_test.shape[0], 1))))
+        y_t_categorical_train = np.hstack((to_categorical(y_t_train.iloc[:, 0]-1, num_classes=3), y_t_train.iloc[:, 1:]))
+        y_t_categorical_test = np.hstack((to_categorical(y_t_test.iloc[:, 0]-1, num_classes=3), y_t_train.iloc[:, 1:]))
+
+        # y_t_delta_categorical = np.hstack((dx_train, np.reshape(adas_train, (adas_train.shape[0], 1)), np.reshape(ventricle_train, (ventricle_train.shape[0], 1))))
+        # y_t_delta_categorical = np.hstack((dx_test, np.reshape(adas_test, (adas_test.shape[0], 1)), np.reshape(ventricle_test, (ventricle_test.shape[0], 1))))
 
 
         model = mlp(x_t_train.shape[-1])
@@ -183,7 +186,7 @@ if __name__ == "__main__":
         print(model.metrics_names)
         print(model.metrics)
 
-        hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_t_train, y_t_train, delta_t_train], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_t_train, y_t_categorical_train, delta_t_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_t_test, y_t_categorical_test, delta_t_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
 
         model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
         model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
