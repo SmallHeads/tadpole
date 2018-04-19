@@ -127,8 +127,7 @@ def load_data_samples(rids, mode='train'):
     y_t_categorical = np.hstack((dx, y_t.iloc[:, 1:]))
 
     # determine what timepoints have a change in diagnosis
-    dx_change = np.zeros(dx.shape[0])
-    dx_change[dx != dx_next] = 1
+    dx_change = np.not_equal(dx, dx_next)
 
     return (rids), (x_t, y_t_categorical, delta_t), (dx_next, adas_next, ventricle_next), (dx_change)
 
