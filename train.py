@@ -1,6 +1,10 @@
 from keras.models import load_model
+from keras import backend as K
+
 from models import mlp
 import ipynb.fs
+
+import argparse
 
 from keras.utils import to_categorical
 
@@ -209,12 +213,14 @@ if __name__ == "__main__":
         print(model.metrics_names)
         print(model.metrics)
 
-        hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_next_train, adas_next_train, ventricle_next_train], epochs=50, validation_data=([x_t_test, y_t_test, delta_t_test], [dx_next_test, adas_next_test, ventricle_next_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_next_train, adas_next_train, ventricle_next_train], epochs=200, validation_data=([x_t_test, y_t_test, delta_t_test], [dx_next_test, adas_next_test, ventricle_next_test]), callbacks=[model_checkpoint])
 
         model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
         model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
 
         plot_graphs(hist, results_dir, k)
+
+        K.clear_session()
 
     model = load_model(results_dir + 'best_tadpole_model0.hdf5')
 
