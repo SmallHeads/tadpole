@@ -47,7 +47,7 @@ def plot_graphs(hist, results_dir, fold_num):
 
 
 def test_d2(model, all_rids, results_dir):
-    (x_t, y_t, delta_t), (dx_next, adas_next, ventricle_next) = load_data_samples(all_rids, mode='train')
+    (rids), (x_t, y_t, delta_t), (dx_next, adas_next, ventricle_next), (dx_change) = load_data_samples(all_rids, mode='train')
 
     predictions = model.predict([x_t, y_t, delta_t])
 
@@ -63,26 +63,16 @@ def test_d2(model, all_rids, results_dir):
 
     # un-normalize regression predictions
 
-    with open(results_dir + 'd2_predictions.csv', 'w') as prediction_file:
-        prediction_writer = csv.writer(prediction_file, lineterminator='\n')
-
-        prediction_writer.writerow(['ID', 'Months', 'P(Control)', 'P(MCI)', 'P(ALZ)', 'ADAS-13', 'Ventricular Volume'])
-
-        for i, (adni_id, dx, adas, ventricle, m) in enumerate(zip(ids, predictions[0], predictions[1], predictions[2], month)):
-            prediction_writer.writerow([adni_id, m, dx[0], dx[1], dx[2], adas[0], ventricle[0]])
-
-def test_future(rids, results_dir):
-    model = load_model(results_dir + 'best_tadpole_model0.hdf5')
-
-    x_t, y_t, delta_t = create_data_table(rids) # delta t here is the time from the last available timepoint for that subject
+def test_future(model, all_rids, results_dir):
+    (rids), (x_t, y_t, delta_t) = load_data_samples(all_rids, mode='test') # in test mode, delta_t is the time until the last timepoint
 
     with open(results_dir + 'future_predictions.csv', 'w') as prediction_file:
         prediction_writer = csv.writer(prediction_file, lineterminator='\n')
-
         prediction_writer.writerow(['ID', 'Months', 'P(Control)', 'P(MCI)', 'P(ALZ)', 'ADAS-13', 'Ventricular Volume'])
 
+        # TODO: stuff from here probably doesnt work
         n_months = 60
-        for rid in rids:
+        for rid in all_rids:
             x = x_t[x_t[0] == rid]
             y = y_t[x_t[0] == rid]
             delta_t = delta_t[x_t[0] == rid]
@@ -117,23 +107,28 @@ def load_data_samples(rids, mode='train'):
     rids = table.iloc[:, 0]
     x_t = table.iloc[:, 1:-7]
     y_t = table.iloc[:, -7:-4]
-    y_t_next = table.iloc[:, -3:]
     delta_t = table.iloc[:, -4]
 
     # current diagnosis is an input feature
     dx = to_categorical(y_t.iloc[:, 0] - 1, num_classes=3)
-
-    # prediction targets
-    dx_next = to_categorical(y_t_next.iloc[:, 0] - 1, num_classes=3)
-    adas_next = y_t_next.iloc[:, 1]
-    ventricle_next = y_t_next.iloc[:, 2]
-
     y_t_categorical = np.hstack((dx, y_t.iloc[:, 1:]))
 
-    # determine what timepoints have a change in diagnosis
-    dx_change = np.not_equal(dx, dx_next)
+    if mode == 'train':
+        y_t_next = table.iloc[:, -3:]
 
-    return (rids), (x_t, y_t_categorical, delta_t), (dx_next, adas_next, ventricle_next), (dx_change)
+        # prediction targets
+        dx_next = to_categorical(y_t_next.iloc[:, 0] - 1, num_classes=3)
+        adas_next = y_t_next.iloc[:, 1]
+        ventricle_next = y_t_next.iloc[:, 2]
+
+        # determine what timepoints have a change in diagnosis
+        dx_change = np.not_equal(dx, dx_next)
+
+        return (rids), (x_t, y_t_categorical, delta_t), (dx_next, adas_next, ventricle_next), (dx_change)
+
+    elif mode == 'test':
+        return (rids), (x_t, y_t_categorical, delta_t)
+
 
 if __name__ == "__main__":
     print('It\'s not the size that counts, it\'s the connections')
