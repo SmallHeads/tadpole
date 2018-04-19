@@ -6,6 +6,7 @@ from keras.utils import to_categorical
 
 from sklearn.model_selection import KFold
 from keras.callbacks import ModelCheckpoint
+from sklearn.metrics import confusion_matrix
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -41,17 +42,22 @@ def plot_graphs(hist, results_dir, fold_num):
     plt.close()
 
 
-def test_d2(results_dir):
-    model = load_model(results_dir + 'best_tadpole_model0.hdf5')
+def test_d2(model, all_rids, results_dir):
+    (x_t, y_t, delta_t), (dx_next, adas_next, ventricle_next) = load_data_samples(all_rids, mode='train')
 
-    feature_list, output_list, rids = compute_data_table(for_predict=True)
+    predictions = model.predict([x_t, y_t, delta_t])
 
-    (x, month), (dx, adas, ventricle), (ids) = parse_data(feature_list, output_list, rids)
+    dx_probabilities = predictions[0:3, :]
+    adas_predictions = predictions[3, :]
+    ventricle_predictions = predictions[4, :]
 
-    predictions = model.predict([x, month])
+    dx_predictions = np.argmax(dx_probabilities, axis=-1)
 
-    # for i, prediction in enumerate(predictions):
-    #     print('prediction', i, prediction)
+    confusion = confusion_matrix(np.asarray(dx_predictions, dtype='uint8'), np.asarray(dx_next, dtype='uint8'))
+    print('Confusion matrix for D2 diagnosis predictions:')
+    print(confusion)
+
+    # un-normalize regression predictions
 
     with open(results_dir + 'd2_predictions.csv', 'w') as prediction_file:
         prediction_writer = csv.writer(prediction_file, lineterminator='\n')
@@ -94,14 +100,40 @@ def test_future(rids, results_dir):
 
     return
 
+def load_data_samples(rids, mode='train'):
+    table = create_test_table(in_df, ref_df, rids, mode=mode).dropna()
+
+    # headers = table.columns.values
+    #
+    # print('Features:', headers[:-7])
+    # print('Outputs:', headers[-7:-4])
+    # print('Prediction targets:', headers[-3:])
+    # print('Timestep:', headers[-4])
+
+    rids = table.iloc[:, 0]
+    x_t = table.iloc[:, 1:-7]
+    y_t = table.iloc[:, -7:-4]
+    y_t_next = table.iloc[:, -3:]
+    delta_t = table.iloc[:, -4]
+
+    # current diagnosis is an input feature
+    dx = to_categorical(y_t.iloc[:, 0] - 1, num_classes=3)
+
+    # prediction targets
+    dx_next = to_categorical(y_t_next.iloc[:, 0] - 1, num_classes=3)
+    adas_next = y_t_next.iloc[:, 1]
+    ventricle_next = y_t_next.iloc[:, 2]
+
+    y_t_categorical = np.hstack((dx, y_t.iloc[:, 1:]))
+
+    # determine what timepoints have a change in diagnosis
+    dx_change = np.zeros(dx.shape[0])
+    dx_change[dx != dx_next] = 1
+
+    return (rids), (x_t, y_t_categorical, delta_t), (dx_next, adas_next, ventricle_next), (dx_change)
 
 if __name__ == "__main__":
-    # test_future('/home/users/adoyle/tadpole/data/experiment-5/')
-
     print('It\'s not the size that counts, it\'s the connections')
-
-    # print(in_df.columns.values)
-    # print(ref_df.columns.values)
 
     all_rids = ref_df['RID'].unique()
 
@@ -121,51 +153,43 @@ if __name__ == "__main__":
 
     pkl.dump(experiment_number, open(workdir + 'experiment_number.pkl', 'wb'))
 
-
     kf = KFold(n_splits=5, shuffle=True)
 
     for k, (train_rids, test_rids) in enumerate(kf.split(all_rids)):
 
-        training_table = create_test_table(in_df, ref_df, train_rids, mode='train').dropna()
-
-        headers = training_table.columns.values
-
-        print('Features:', headers[:-7])
-        print('Outputs:', headers[-7:-4])
-        print('Prediction targets:', headers[-3:])
-        print('Timestep:', headers[-4])
-
-        # rids = training_table.iloc[0]
-        x_t_train = training_table.iloc[:, 1:-7]
-        y_t_train = training_table.iloc[:, -7:-4]
-        y_t_next_train = training_table.iloc[:, -3:]
-        delta_t_train = training_table.iloc[:, -4]
-
         testing_table = create_test_table(in_df, ref_df, test_rids, mode='train').dropna()
 
-        # rids = training_table.iloc[0]
-        x_t_test = training_table.iloc[:, 1:-7]
-        y_t_test = training_table.iloc[:, -7:-4]
-        y_t_next_test = training_table.iloc[:, -3:]
-        delta_t_test = training_table.iloc[:, -4]
+        (rids_train),\
+        (x_t_train, y_t_train, delta_t_train),\
+        (dx_next_train, adas_next_train, ventricle_next_train),\
+        (dx_change_train) = load_data_samples(train_rids, mode='train')
 
-        # prediction targets
-        dx_train, dx_test = to_categorical(y_t_next_train.iloc[:, 0]-1, num_classes=3), to_categorical(y_t_next_test.iloc[:, 0]-1, num_classes=3)
+        (rids_test),\
+        (x_t_test, y_t_test, delta_t_test),\
+        (dx_next_test, adas_next_test, ventricle_next_test),\
+        (dx_change_test) = load_data_samples(test_rids, mode='train')
 
-        adas_train, adas_test = y_t_next_train.iloc[:, 1], y_t_next_test.iloc[:, 1]
-        ventricle_train, ventricle_test = y_t_next_train.iloc[:, 2], y_t_next_test.iloc[:, 2]
+        n_healthy = np.sum(dx_next_train[:, 0])
+        n_mci = np.sum(dx_next_train[:, 1])
+        n_alzheimers = np.sum(dx_next_train[:, 2])
+        n_total = dx_next_train.shape[0]
 
-        print(dx_train.shape, adas_train.shape, ventricle_train.shape)
-        print(dx_test.shape, adas_test.shape, ventricle_test.shape)
+        print('Distribution of prediction targets this fold (training):')
+        print(n_healthy, 'healthy')
+        print(n_mci, 'mild cognitive impairment')
+        print(n_alzheimers, 'Alzheimer\'s')
+        print(n_total, 'total')
 
+        healthy_weight = (n_total - n_healthy) / n_total
+        mci_weight = (n_total - n_mci) / n_total
+        alzheimers_weight = (n_total - n_alzheimers) / n_total
 
-        y_t_categorical_train = np.hstack((to_categorical(y_t_train.iloc[:, 0]-1, num_classes=3), y_t_train.iloc[:, 1:]))
-        y_t_categorical_test = np.hstack((to_categorical(y_t_test.iloc[:, 0]-1, num_classes=3), y_t_train.iloc[:, 1:]))
+        print('Class weight (healthy, MCI, Alzheimer\'s):', healthy_weight, mci_weight, alzheimers_weight)
 
-        # y_t_delta_categorical = np.hstack((dx_train, np.reshape(adas_train, (adas_train.shape[0], 1)), np.reshape(ventricle_train, (ventricle_train.shape[0], 1))))
-        # y_t_delta_categorical = np.hstack((dx_test, np.reshape(adas_test, (adas_test.shape[0], 1)), np.reshape(ventricle_test, (ventricle_test.shape[0], 1))))
+        diagnosis_changes =  np.sum(dx_change_train)
+        print('Proportion of samples where diagnosis changes between timepoints:', diagnosis_changes / n_total)
 
-
+        # initialize model and train it
         model = mlp(x_t_train.shape[-1])
         model.summary()
 
@@ -186,12 +210,14 @@ if __name__ == "__main__":
         print(model.metrics_names)
         print(model.metrics)
 
-        hist = model.fit([x_t_train, y_t_categorical_train, delta_t_train], [dx_train, adas_train, ventricle_train], epochs=50, validation_data=([x_t_test, y_t_categorical_test, delta_t_test], [dx_test, adas_test, ventricle_test]), callbacks=[model_checkpoint])
+        hist = model.fit([x_t_train, y_t_train, delta_t_train], [dx_next_train, adas_next_train, ventricle_next_train], epochs=50, validation_data=([x_t_test, y_t_test, delta_t_test], [dx_next_test, adas_next_test, ventricle_next_test]), callbacks=[model_checkpoint])
 
         model.load_weights(results_dir + "best_weights_fold_" + str(k) + ".hdf5")
         model.save(results_dir + 'best_tadpole_model' + str(k) + '.hdf5')
 
         plot_graphs(hist, results_dir, k)
 
-        test_d2(results_dir)
-        test_future(results_dir)
+    model = load_model(results_dir + 'best_tadpole_model0.hdf5')
+
+    test_d2(model, all_rids, results_dir)
+    test_future(model, all_rids, results_dir)
